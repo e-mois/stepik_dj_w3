@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block container %}
+  <main class="container mt-3">
+    <div class="navbar mt-5">
+      <p><a href="{% url 'index' %}">Назад</a></p>
+    </div>
+    <section>
+      <div class="text-center">
+        <img src="{{ company.logo }}" width="130" height="80" alt="">
+      </div>
+      <h1 class="h1 text-center mx-auto mt-0 pt-1" style="font-size: 70px;"><strong>{{ company.name }}</strong></h1>
+      <p class="text-center pt-1">Компания, {{ vacancies|length }} вакансий</p>
+      <div class="row mt-5">
+        <div class="col-12 col-lg-8 offset-lg-2 m-auto">
+        {% for vac, vac_value in vacancies.items %}
+          <div class="card mb-4">
+            <div class="card-body px-4">
+              <div class="row">
+                <div class="col-12 col-md-8 col-lg-9">
+                  <h2 class="h2 pb-2">{{ vac_value.title }}</h2>
+                  <p class="mb-2">{{ vac_value.spec }} • {{ vac_value.skills }}</p>
+                  <p>От {{ vac_value.salary_min }} до {{ vac_value.salary_max }} руб.</p>
+                  <p class="text-muted pt-1">{{ vac_value.date }}</p>
+                </div>
+                <div class="col-12 col-md-4 col-lg-3 d-flex align-items-end">
+                  <a href="/companies/{{ vac_value.company_id }}"><img src="{{ vac_value.company_pic }}" width="130" height="80" alt=""></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}
