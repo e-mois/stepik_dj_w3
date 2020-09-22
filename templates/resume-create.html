@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Создать карточку компании | Джуманджи</title>
+  <title>Создать резюме | Джуманджи</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <style>
@@ -16,7 +16,7 @@
 <body>
   <header class="container mt-3">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand mr-4 font-weight-bold" href="/">Джуманджи</a>
+      <a class="navbar-brand mr-4 font-weight-bold" href="#">Джуманджи</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -36,13 +36,13 @@
           <li class="nav-item active">
             <div class="btn-group">
               <button type="button" class="btn dropdown-toggle font-weight-bold" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  {{ request.user.get_full_name }}
+                Иван Топорыжкин
               </button>
               <div class="dropdown-menu dropdown-menu-right mt-3">
                 <a href="#" class="dropdown-item py-2">Профиль</a>
                 <a href="#" class="dropdown-item py-2">Резюме</a>
                 <a href="#" class="dropdown-item py-2">Компания</a>
-                <a href="/logout" class="dropdown-item py-2">Выйти</a>
+                <a href="#" class="dropdown-item py-2">Выйти</a>
               </div>
             </div>
           </li>
@@ -54,9 +54,9 @@
   <main class="container mt-3 pb-5">
     <section class="col-12 col-lg-6 offset-lg-3 mt-5 card">
       <div class="card-body px-3 pb-4">
-        <h1 class="h4 pt-2">Моя компания</h1>
-        <p class="mt-2">Пока мы думаем, что вы – частное лицо. Хотите создать карточку компании, разместить информаию и вакансии?</p>
-         <a href="/mycompany/create" class="btn btn-info mb-2">Создать карточку компании</a>
+        <h1 class="h4 pt-2">Мое резюме</h1>
+        <p class="mt-2">У вас нет резюме. Хотите создать его?</p>
+        <a href="#" class="btn btn-info mb-2">Создать резюме</a>
       </div>
     </section>
   </main>

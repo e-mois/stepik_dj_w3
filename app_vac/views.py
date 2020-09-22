@@ -1,8 +1,13 @@
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView
 from django.http import Http404, HttpResponseServerError
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
+from django.views.generic import CreateView
 
-from app_vac.models import Speciality, Vacancy, Company
+from app_vac.forms import ApplicationsForm, MyCompanyForm, MyUserCreationForm
+from app_vac.models import Speciality, Vacancy, Company, Applications
 
 
 def custom_handler500(request):
@@ -40,7 +45,6 @@ class MainView(View):
 
 class VacanciesView(View):
     def get(self, request, vac_category=""):
-        vac_dict = {}
         context = {}
         if vac_category:
             spec = Speciality.objects.filter(code=vac_category)[0]
@@ -54,20 +58,7 @@ class VacanciesView(View):
             vacancies = Vacancy.objects.all()
             context["all_vac"] = True
 
-        for vacancy in vacancies:
-            vac_dict[vacancy.id] = {}
-            vac_dict[vacancy.id]["title"] = vacancy.title
-            vac_dict[vacancy.id]["skills"] = vacancy.skills
-            vac_dict[vacancy.id]["description"] = vacancy.description
-            vac_dict[vacancy.id]["salary_min"] = vacancy.salary_min
-            vac_dict[vacancy.id]["salary_max"] = vacancy.salary_max
-            vac_dict[vacancy.id]["date"] = vacancy.published_at
-            vac_dict[vacancy.id]["company"] = vacancy.company.name
-            vac_dict[vacancy.id]["company_id"] = vacancy.company.id
-            vac_dict[vacancy.id]['company_pic'] = vacancy.company.logo
-            vac_dict[vacancy.id]["spec"] = vacancy.speciality.name
-
-        context["vacancies"] = vac_dict
+        context["vacancies"] = vacancies
 
         return render(request, 'vacancies.html', context=context)
 
@@ -78,34 +69,116 @@ class CompanyView(View):
             raise Http404
         company = Company.objects.get(id=company_id)
         vacancies = Vacancy.objects.filter(company=company_id)
-        vac_dict = {}
-        for vacancy in vacancies:
-            vac_dict[vacancy.id] = {}
-            vac_dict[vacancy.id]["title"] = vacancy.title
-            vac_dict[vacancy.id]["skills"] = vacancy.skills
-            vac_dict[vacancy.id]["description"] = vacancy.description
-            vac_dict[vacancy.id]["salary_min"] = vacancy.salary_min
-            vac_dict[vacancy.id]["salary_max"] = vacancy.salary_max
-            vac_dict[vacancy.id]["date"] = vacancy.published_at
-            vac_dict[vacancy.id]["company"] = vacancy.company.name
-            vac_dict[vacancy.id]["company_id"] = vacancy.company.id
-            vac_dict[vacancy.id]['company_pic'] = vacancy.company.logo
-            vac_dict[vacancy.id]["spec"] = vacancy.speciality.name
 
         context = {
             'company': company,
-            'vacancies': vac_dict
+            'vacancies': vacancies
         }
         return render(request, 'company.html', context=context)
 
 
 class VacancySingleView(View):
+    form = ApplicationsForm
+
     def get(self, request, vacancy_id):
         if vacancy_id is None:
             raise Http404
         vacancy = Vacancy.objects.get(id=vacancy_id)
-
+        form = self.form
         context = {
             'vacancy': vacancy,
+            'form': form
         }
         return render(request, 'vacancy.html', context=context)
+
+    def post(self, request, vacancy_id):
+        vacancy = Vacancy.objects.get(id=vacancy_id)
+        user = User.objects.filter(username=request.user)[0]
+        form = self.form(request.POST)
+        if form.is_valid():
+            name = request.POST.get('name')
+            phone = request.POST.get('phone')
+            letter = request.POST.get('letter')
+            new_app = Applications(written_username=name, written_phone=phone,
+                                   written_cover_letter=letter, vacancy=vacancy, user=user)
+            new_app.save()
+        return redirect(f'{vacancy_id}/send')
+
+
+class MySignupView(CreateView):
+    form_class = MyUserCreationForm
+    success_url = 'login'
+    template_name = 'register.html'
+
+    def form_valid(self, form):
+        form.save()
+        return super(MySignupView, self).form_valid(form)
+
+
+class MyLoginView(LoginView):
+    redirect_authenticated_user = True
+    template_name = 'login.html'
+
+
+class ApplicationSent(View):
+    def get(self, request, vacancy_id):
+        context = {
+            'id': vacancy_id
+        }
+        return render(request, 'sent.html', context=context)
+
+
+class MyCompanyView(View):
+    def get(self, request):
+        company = Company.objects.filter(owner=request.user.id)
+        if company:
+            my_company = company[0]
+            form = MyCompanyForm(initial={'name': my_company.name, 'count_people': my_company.employee_count,
+                                          'logo': my_company.logo.url, 'location': my_company.location,
+                                          'info': my_company.description},
+                                 auto_id=False)
+            context = {'form': form}
+            return render(request, 'company-edit.html', context=context)
+        else:
+            return render(request, 'company-create.html')
+
+    def post(self, request):
+        form = MyCompanyForm(request.POST)
+        my_company = Company.objects.filter(owner=request.user)[0]
+        if form.is_valid():
+            my_company.name = request.POST.get('name')
+            my_company.employee_count = request.POST.get('count_people')
+            my_company.logo = request.POST.get('logo')
+            my_company.location = request.POST.get('location')
+            my_company.description = request.POST.get('info')
+
+            my_company.save()
+            return redirect('mycompany')
+
+
+class MyCompanyCreateView(View):
+    def get(self, request):
+        form = MyCompanyForm()
+        context = {'form': form}
+        return render(request, 'company-edit.html', context=context)
+
+    def post(self, request):
+        user = User.objects.filter(username=request.user)[0]
+        form = MyCompanyForm(request.POST)
+        if form.is_valid():
+            name = request.POST.get('name')
+            count_people = request.POST.get('count_people')
+            logo = request.POST.get('logo')
+            location = request.POST.get('location')
+            info = request.POST.get('info')
+            new_company = Company(name=name, employee_count=count_people,
+                                  logo=logo, location=location, description=info, owner=user)
+            new_company.save()
+            return redirect('mycompany')
+        else:
+            return render(request, 'company-edit.html', context={'form': form})
+
+
+class MyCompanyVacanciesListView(View):
+    def get(self, request):
+        return render(request, 'vacancy-list.html')

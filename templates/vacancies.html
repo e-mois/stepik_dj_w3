@@ -13,18 +13,19 @@
       <p class="text-center pt-1">{{ vacancies|length }} вакансий</p>
       <div class="row mt-5">
         <div class="col-12 col-lg-8 offset-lg-2 m-auto">
-          {% for vac, vac_value in vacancies.items %}
+          {% for vacancy in vacancies %}
           <div class="card mb-4">
             <div class="card-body px-4">
               <div class="row">
-                <div class="col-12 col-md-8 col-lg-9">
-                  <h2 class="h2 pb-2">{{ vac_value.title }}</h2>
-                  <p class="mb-2">{{ vac_value.spec }} • {{ vac_value.skills }}</p>
-                  <p>От {{ vac_value.salary_min }} до {{ vac_value.salary_max }} руб.</p>
-                  <p class="text-muted pt-1">{{ vac_value.date }}</p>
-                </div>
+                <a href="{{ vacancy.id }}"><div class="col-12 col-md-8 col-lg-9">
+                  <h2 class="h2 pb-2">{{ vacancy.title }}</h2>
+                  <p class="mb-2">{{ vacancy.speciality.name }} • {{ vacancy.skills }}</p>
+                  <p>От {{ vacancy.salary_min }} до {{ vacancy.salary_max }} руб.</p>
+                  <p class="text-muted pt-1">{{ vacancy.published_at }}</p>
+                </div></a>
                 <div class="col-12 col-md-4 col-lg-3 d-flex align-items-end">
-                  <a href="/companies/{{ vac_value.company_id }}"><img src="{{ vac_value.company_pic }}" width="130" height="80" alt=""></a>
+                  <a href="/companies/{{ vacancy.company_id }}"><img src="{{ vacancy.company.logo.url }}"
+                                                                       width="130" height="80" alt=""></a>
                 </div>
               </div>
             </div>
