@@ -20,8 +20,10 @@ class Migration(migrations.Migration):
                 ('written_username', models.CharField(max_length=128)),
                 ('written_phone', models.CharField(max_length=16)),
                 ('written_cover_letter', models.TextField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to=settings.AUTH_USER_MODEL)),
-                ('vacancy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='app_vac.vacancy')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications',
+                                           to=settings.AUTH_USER_MODEL)),
+                ('vacancy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications',
+                                              to='app_vac.vacancy')),
             ],
         ),
     ]

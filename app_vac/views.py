@@ -1,12 +1,14 @@
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+import datetime
+
+from django.contrib import messages
 from django.contrib.auth.views import LoginView
+from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponseServerError
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import CreateView
 
-from app_vac.forms import ApplicationsForm, MyCompanyForm, MyUserCreationForm
+from app_vac.forms import ApplicationsForm, MyCompanyForm, MyUserCreationForm, VacancyForm
 from app_vac.models import Speciality, Vacancy, Company, Applications
 
 
@@ -93,12 +95,12 @@ class VacancySingleView(View):
 
     def post(self, request, vacancy_id):
         vacancy = Vacancy.objects.get(id=vacancy_id)
-        user = User.objects.filter(username=request.user)[0]
+        user = request.user
         form = self.form(request.POST)
         if form.is_valid():
-            name = request.POST.get('name')
-            phone = request.POST.get('phone')
-            letter = request.POST.get('letter')
+            name = form.cleaned_data['name']
+            phone = form.cleaned_data['phone']
+            letter = form.cleaned_data['letter']
             new_app = Applications(written_username=name, written_phone=phone,
                                    written_cover_letter=letter, vacancy=vacancy, user=user)
             new_app.save()
@@ -134,8 +136,7 @@ class MyCompanyView(View):
         if company:
             my_company = company[0]
             form = MyCompanyForm(initial={'name': my_company.name, 'count_people': my_company.employee_count,
-                                          'logo': my_company.logo.url, 'location': my_company.location,
-                                          'info': my_company.description},
+                                          'location': my_company.location, 'info': my_company.description},
                                  auto_id=False)
             context = {'form': form}
             return render(request, 'company-edit.html', context=context)
@@ -143,17 +144,26 @@ class MyCompanyView(View):
             return render(request, 'company-create.html')
 
     def post(self, request):
-        form = MyCompanyForm(request.POST)
+        form = MyCompanyForm(request.POST, request.FILES)
         my_company = Company.objects.filter(owner=request.user)[0]
+
         if form.is_valid():
-            my_company.name = request.POST.get('name')
-            my_company.employee_count = request.POST.get('count_people')
-            my_company.logo = request.POST.get('logo')
-            my_company.location = request.POST.get('location')
-            my_company.description = request.POST.get('info')
+            myfile = request.FILES['myfile']
+            fs = FileSystemStorage()
+            filename = fs.save(myfile.name, myfile)
+            uploaded_file_url = filename
+
+            my_company.name = form.cleaned_data['name']
+            my_company.employee_count = form.cleaned_data['count_people']
+            my_company.logo = uploaded_file_url
+            my_company.location = form.cleaned_data['location']
+            my_company.description = form.cleaned_data['info']
 
             my_company.save()
-            return redirect('mycompany')
+            messages.success(request, 'Company updated successfully')
+            return redirect('/mycompany/')
+        else:
+            return redirect('/mycompany/')
 
 
 class MyCompanyCreateView(View):
@@ -163,22 +173,100 @@ class MyCompanyCreateView(View):
         return render(request, 'company-edit.html', context=context)
 
     def post(self, request):
-        user = User.objects.filter(username=request.user)[0]
-        form = MyCompanyForm(request.POST)
+        user = request.user
+        form = MyCompanyForm(request.POST, request.FILES)
+
         if form.is_valid():
-            name = request.POST.get('name')
-            count_people = request.POST.get('count_people')
-            logo = request.POST.get('logo')
-            location = request.POST.get('location')
-            info = request.POST.get('info')
+            myfile = request.FILES['myfile']
+            fs = FileSystemStorage()
+            filename = fs.save(myfile.name, myfile)
+            uploaded_file_url = filename
+
+            name = form.cleaned_data['name']
+            count_people = form.cleaned_data['count_people']
+            logo = uploaded_file_url
+            location = form.cleaned_data['location']
+            info = form.cleaned_data['info']
             new_company = Company(name=name, employee_count=count_people,
                                   logo=logo, location=location, description=info, owner=user)
             new_company.save()
-            return redirect('mycompany')
+            return redirect('/mycompany/')
         else:
             return render(request, 'company-edit.html', context={'form': form})
 
 
 class MyCompanyVacanciesListView(View):
     def get(self, request):
-        return render(request, 'vacancy-list.html')
+        my_company = Company.objects.filter(owner=request.user.id)[0]
+        vacancies_list = Vacancy.objects.filter(company=my_company)
+        context = {
+            'vac_list': vacancies_list,
+        }
+        return render(request, 'vacancy-list.html', context=context)
+
+
+class MyCompanyVacancyCreate(View):
+    def get(self, request):
+        form = VacancyForm()
+        speciality_list = [x.name for x in Speciality.objects.all()]
+        context = {'form': form, 'specs': speciality_list}
+        return render(request, 'vacancy-edit.html', context=context)
+
+    def post(self, request):
+        user = request.user
+        my_company = Company.objects.filter(owner=user)[0]
+        form = VacancyForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            company = my_company
+            skills = form.cleaned_data['skills'],
+            speciality = form.cleaned_data['speciality']
+            description = form.cleaned_data['description'],
+            salary_min = form.cleaned_data['salary_min'],
+            salary_max = form.cleaned_data['salary_max'],
+            published_at = datetime.datetime.today().strftime("%Y-%m-%d")
+            new_vac = Vacancy(title=title,
+                              speciality=speciality,
+                              company=company,
+                              skills=skills,
+                              description=description,
+                              salary_min=salary_min,
+                              salary_max=salary_max,
+                              published_at=published_at)
+            new_vac.save()
+
+            return redirect('/mycompany/vacancies/')
+
+
+class MyCompanyVacancyEdit(View):
+    def get(self, request, vacancy_id):
+        my_vacancy = Vacancy.objects.get(id=vacancy_id)
+        vacancy_applications = Applications.objects.filter(vacancy_id=vacancy_id)
+        if my_vacancy:
+            form = VacancyForm(initial={'title': my_vacancy.title,
+                                        'speciality': my_vacancy.speciality.name,
+                                        'company': my_vacancy.company, 'skills': my_vacancy.skills,
+                                        'description': my_vacancy.description, 'salary_min': my_vacancy.salary_min,
+                                        'salary_max': my_vacancy.salary_max, 'published_at': my_vacancy.published_at},
+                               auto_id=False)
+            context = {'form': form, 'vac_app': vacancy_applications, 'vac': my_vacancy}
+            return render(request, 'vacancy-edit.html', context=context)
+        else:
+            return render(request, 'vacancy-edit.html')
+
+    def post(self, request, vacancy_id):
+        my_vacancy = Vacancy.objects.get(id=vacancy_id)
+        form = VacancyForm(request.POST)
+        if form.is_valid():
+            my_vacancy.title = form.cleaned_data['title']
+            my_vacancy.skills = form.cleaned_data['skills']
+            my_vacancy.speciality = Speciality.objects.get(id=form.cleaned_data['speciality'])
+            my_vacancy.description = form.cleaned_data['description']
+            my_vacancy.salary_min = form.cleaned_data['salary_min']
+            my_vacancy.salary_max = form.cleaned_data['salary_max']
+            my_vacancy.published_at = datetime.datetime.today().strftime("%Y-%m-%d")
+            my_vacancy.save()
+            messages.success(request, 'Vacancy updated successfully')
+            return redirect(f'/mycompany/vacancies/{vacancy_id}/')
+        else:
+            return redirect('/mycompany/vacancies/')

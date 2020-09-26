@@ -20,22 +20,25 @@ from django.contrib.auth.views import LogoutView
 from django.urls import path
 
 from app_vac.views import CompanyView, MainView, MyLoginView, MySignupView, VacanciesView, VacancySingleView, \
-    MyCompanyView, MyCompanyCreateView, MyCompanyVacanciesListView, ApplicationSent
+    MyCompanyView, MyCompanyCreateView, MyCompanyVacanciesListView, ApplicationSent, MyCompanyVacancyCreate, \
+    MyCompanyVacancyEdit
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', MainView.as_view(), name='index'),
     path('vacancies/', VacanciesView.as_view(), name='vacancies'),
-    path('vacancies/cat/<str:vac_category>', VacanciesView.as_view()),
-    path('companies/<int:company_id>', CompanyView.as_view()),
-    path('vacancies/<int:vacancy_id>', VacancySingleView.as_view()),
-    path('vacancies/<int:vacancy_id>/send', ApplicationSent.as_view()),
-    path('login', MyLoginView.as_view()),
-    path('logout', LogoutView.as_view()),
-    path('signup', MySignupView.as_view()),
-    path('mycompany', MyCompanyView.as_view()),
-    path('mycompany/create', MyCompanyCreateView.as_view()),
-    path('mycompany/vacancies', MyCompanyVacanciesListView.as_view()),
+    path('vacancies/cat/<str:vac_category>/', VacanciesView.as_view()),
+    path('companies/<int:company_id>/', CompanyView.as_view()),
+    path('vacancies/<int:vacancy_id>/', VacancySingleView.as_view()),
+    path('vacancies/<int:vacancy_id>/send/', ApplicationSent.as_view()),
+    path('login/', MyLoginView.as_view()),
+    path('logout/', LogoutView.as_view()),
+    path('signup/', MySignupView.as_view()),
+    path('mycompany/', MyCompanyView.as_view(), name='mycompany'),
+    path('mycompany/create/', MyCompanyCreateView.as_view()),
+    path('mycompany/vacancies/', MyCompanyVacanciesListView.as_view(), name='vac_list'),
+    path('mycompany/vacancies/create/', MyCompanyVacancyCreate.as_view(), name='company-vac-create'),
+    path('mycompany/vacancies/<int:vacancy_id>/', MyCompanyVacancyEdit.as_view(), name='company-vac-edit'),
 ]
 
 if settings.DEBUG:

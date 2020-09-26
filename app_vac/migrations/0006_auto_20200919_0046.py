@@ -16,7 +16,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='company',
             name='owner',
-            field=models.ForeignKey(default='', on_delete=django.db.models.deletion.CASCADE, related_name='company', to='auth.user'),
+            field=models.ForeignKey(default='', on_delete=django.db.models.deletion.CASCADE, related_name='company',
+                                    to='auth.user'),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -36,8 +37,10 @@ class Migration(migrations.Migration):
                 ('whritten_username', models.CharField(max_length=128)),
                 ('written_phone', models.CharField(max_length=16)),
                 ('written_cover_letter', models.TextField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to=settings.AUTH_USER_MODEL)),
-                ('vacancy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='app_vac.vacancy')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications',
+                                           to=settings.AUTH_USER_MODEL)),
+                ('vacancy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications',
+                                              to='app_vac.vacancy')),
             ],
         ),
     ]

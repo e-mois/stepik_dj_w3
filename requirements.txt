@@ -6,4 +6,5 @@ Pillow==7.2.0
 pycodestyle==2.6.0
 pyflakes==2.2.0
 pytz==2020.1
+somewhere==0.0.1
 sqlparse==0.3.1

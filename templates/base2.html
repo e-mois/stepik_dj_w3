@@ -3,16 +3,21 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Джуманджи</title>
+  <title>Создать карточку компании | Джуманджи</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <style>
+    body {
+      background-color: #F6F2E6;
+    }
+  </style>
 </head>
 
 <body>
   <header class="container mt-3">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand mr-4" href="{% url 'index' %}">Джуманджи</a>
+      <a class="navbar-brand mr-4 font-weight-bold" href="/">Джуманджи</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
               aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -20,29 +25,47 @@
       <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
         <ul class="navbar-nav col-10">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'vacancies' %}">Вакансии</a>
+            <a class="nav-link text-dark" href="{% url 'vac_list' %}">Вакансии</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Компании</a>
+            <a class="nav-link text-dark" href="#">Компании</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">О проекте</a>
+            <a class="nav-link text-dark" href="#">О проекте</a>
           </li>
         </ul>
         <ul class="navbar-nav col-2 justify-content-end">
           <li class="nav-item active">
-            {% if request.user.is_authenticated %}
-            <a href="{% url 'mycompany' %}" class="nav-link font-weight-bold">{{ request.user.get_full_name }}</a>
-            {% else %}
-            <a href="/login" class="nav-link font-weight-bold">Вход</a>
-            {% endif %}
+            <div class="btn-group">
+              <button type="button" class="btn dropdown-toggle font-weight-bold" data-toggle="dropdown"
+                      aria-haspopup="true" aria-expanded="false">
+                  {{ request.user.get_full_name }}
+              </button>
+              <div class="dropdown-menu dropdown-menu-right mt-3">
+                <a href="#" class="dropdown-item py-2">Профиль</a>
+                <a href="#" class="dropdown-item py-2">Резюме</a>
+                <a href="{% url 'mycompany' %}" class="dropdown-item py-2">Компания</a>
+                <a href="/logout" class="dropdown-item py-2">Выйти</a>
+              </div>
+            </div>
           </li>
         </ul>
       </div>
     </nav>
   </header>
+  <main class="container mt-3 pb-5">
+    <div class="row mt-5">
+      <div class="col-12 col-lg-4">
+        <aside class="pt-3 pb-4 px-4 mb-5 card">
+          <h1 class="h4 pt-2 pb-2">Моя компания</h1>
+          <div class="nav flex-column nav-pills">
+            <a class="nav-link" href="{% url 'mycompany' %}">1. Информация о&nbsp;компании</a>
+            <a class="nav-link active" href="{% url 'vac_list' %}">2. Вакансии</a>
+          </div>
+        </aside>
+      </div>
 
-{% block container %}{% endblock %}
+  {% block container %}{% endblock %}
 
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
           integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
